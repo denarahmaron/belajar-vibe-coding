@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1776604904021,
+      "tag": "0000_rare_famine",
+      "breakpoints": true
+    }
+  ]
+}
