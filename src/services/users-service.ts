@@ -61,6 +61,31 @@ export class UsersService {
 
     return token;
   }
+
+  async getCurrentUser(token: string) {
+    if (!token) {
+      throw new Error("Unauthorized");
+    }
+
+    // Join sessions and users to get user data from token
+    const [result] = await db
+      .select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        createdAt: users.createdAt,
+      })
+      .from(sessions)
+      .innerJoin(users, eq(sessions.userId, users.id))
+      .where(eq(sessions.name, token))
+      .limit(1);
+
+    if (!result) {
+      throw new Error("Unauthorized");
+    }
+
+    return result;
+  }
 }
 
 export const usersService = new UsersService();

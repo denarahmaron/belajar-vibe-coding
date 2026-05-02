@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vibe Coding - Login & Register</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px rgba(255, 255, 255, 0.1) solid;
+        }
+        .tab-active {
+            border-bottom: 2px solid #38bdf8;
+            color: #38bdf8;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4">
+
+    <div class="glass w-full max-w-md p-8 rounded-2xl shadow-2xl text-white">
+        <h1 class="text-3xl font-bold text-center mb-8 bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent">
+            Belajar Vibe Coding
+        </h1>
+
+        <!-- Tabs -->
+        <div class="flex mb-8 border-b border-gray-700">
+            <button id="tab-login" class="flex-1 py-2 text-center font-semibold tab-active transition" onclick="switchTab('login')">Login</button>
+            <button id="tab-register" class="flex-1 py-2 text-center font-semibold text-gray-400 hover:text-white transition" onclick="switchTab('register')">Register</button>
+        </div>
+
+        <!-- Login Form -->
+        <form id="login-form" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-1">Email Address</label>
+                <input type="email" id="login-email" required class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 transition" placeholder="budi@example.com">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-1">Password</label>
+                <input type="password" id="login-password" required class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 transition" placeholder="••••••••">
+            </div>
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg shadow-lg shadow-blue-500/20 transition transform active:scale-95">
+                Sign In
+            </button>
+        </form>
+
+        <!-- Register Form (Hidden by default) -->
+        <form id="register-form" class="space-y-4 hidden">
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-1">Full Name</label>
+                <input type="text" id="reg-name" required class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 transition" placeholder="Budi Santoso">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-1">Email Address</label>
+                <input type="email" id="reg-email" required class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 transition" placeholder="budi@example.com">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-1">Password</label>
+                <input type="password" id="reg-password" required class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 transition" placeholder="••••••••">
+            </div>
+            <button type="submit" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 rounded-lg shadow-lg shadow-cyan-500/20 transition transform active:scale-95">
+                Create Account
+            </button>
+        </form>
+
+        <!-- Status Message -->
+        <div id="message" class="mt-6 p-4 rounded-lg hidden text-sm font-medium"></div>
+
+        <!-- Logged In Info (Hidden by default) -->
+        <div id="user-info" class="mt-6 p-4 glass rounded-lg hidden">
+            <p class="text-gray-400 text-xs uppercase font-bold mb-2">Authenticated User</p>
+            <div id="user-detail" class="text-sm"></div>
+            
+            <hr class="my-4 border-gray-700">
+
+            <!-- Todo Section -->
+            <div class="mt-4">
+                <h3 class="font-bold text-blue-400 mb-4">My Tasks</h3>
+                <form id="todo-form" class="flex gap-2 mb-4">
+                    <input type="text" id="todo-title" required class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500 transition" placeholder="What to do next?">
+                    <button type="submit" class="bg-blue-600 px-4 py-2 rounded-lg text-sm font-bold">+</button>
+                </form>
+                <ul id="todo-list" class="space-y-2 max-h-48 overflow-y-auto">
+                    <!-- Todos will appear here -->
+                </ul>
+            </div>
+
+            <button onclick="logout()" class="mt-8 text-red-400 hover:text-red-300 text-sm font-bold w-full text-center">Logout</button>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3001/api';
+
+        function switchTab(tab) {
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+            const tabLogin = document.getElementById('tab-login');
+            const tabRegister = document.getElementById('tab-register');
+
+            if (tab === 'login') {
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+                tabLogin.classList.add('tab-active');
+                tabLogin.classList.remove('text-gray-400');
+                tabRegister.classList.remove('tab-active');
+                tabRegister.classList.add('text-gray-400');
+            } else {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+                tabRegister.classList.add('tab-active');
+                tabRegister.classList.remove('text-gray-400');
+                tabLogin.classList.remove('tab-active');
+                tabLogin.classList.add('text-gray-400');
+            }
+            document.getElementById('message').classList.add('hidden');
+        }
+
+        function showMessage(msg, isError = false) {
+            const msgDiv = document.getElementById('message');
+            msgDiv.textContent = msg;
+            msgDiv.classList.remove('hidden', 'bg-red-900/30', 'text-red-400', 'bg-green-900/30', 'text-green-400');
+            
+            if (isError) {
+                msgDiv.classList.add('bg-red-900/30', 'text-red-400');
+            } else {
+                msgDiv.classList.add('bg-green-900/30', 'text-green-400');
+            }
+        }
+
+        // Register Logic
+        document.getElementById('register-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const body = {
+                name: document.getElementById('reg-name').value,
+                email: document.getElementById('reg-email').value,
+                password: document.getElementById('reg-password').value
+            };
+
+            try {
+                const res = await fetch(`${API_URL}/users`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    showMessage('Registrasi Berhasil! Silakan Login.');
+                    switchTab('login');
+                } else {
+                    showMessage(data.error || 'Gagal registrasi', true);
+                }
+            } catch (err) {
+                showMessage('Server tidak merespon. Pastikan BE menyala!', true);
+            }
+        };
+
+        // Login Logic
+        document.getElementById('login-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const body = {
+                email: document.getElementById('login-email').value,
+                password: document.getElementById('login-password').value
+            };
+
+            try {
+                const res = await fetch(`${API_URL}/users/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    const token = data.data;
+                    localStorage.setItem('token', token);
+                    showMessage('Login Berhasil!');
+                    checkCurrentUser();
+                } else {
+                    showMessage(data.error || 'Email atau password salah', true);
+                }
+            } catch (err) {
+                showMessage('Server tidak merespon. Pastikan BE menyala!', true);
+            }
+        };
+
+        async function checkCurrentUser() {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            try {
+                const res = await fetch(`${API_URL}/current`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    document.getElementById('user-info').classList.remove('hidden');
+                    document.getElementById('user-detail').innerHTML = `
+                        <p class="font-semibold text-blue-400">${data.data.name}</p>
+                        <p class="text-gray-400 text-xs">${data.data.email}</p>
+                    `;
+                    document.getElementById('login-form').classList.add('hidden');
+                    document.getElementById('register-form').classList.add('hidden');
+                    document.querySelector('.flex.mb-8').classList.add('hidden');
+                    fetchTodos(); // Ambil daftar todo setelah login
+                } else {
+                    logout();
+                }
+            } catch (err) {
+                console.error('Failed to fetch current user');
+            }
+        }
+
+        async function fetchTodos() {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${API_URL}/todos`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            
+            const list = document.getElementById('todo-list');
+            list.innerHTML = '';
+            data.data.forEach(todo => {
+                const li = document.createElement('li');
+                const isDone = todo.isDone === 1;
+                li.className = `bg-gray-800/50 p-3 rounded-lg text-sm flex justify-between items-center border ${isDone ? 'border-green-900/50 opacity-50' : 'border-gray-700'}`;
+                li.innerHTML = `
+                    <div class="flex items-center gap-3 cursor-pointer" onclick="toggleTodo(${todo.id}, ${todo.isDone})">
+                        <div class="w-4 h-4 border border-blue-400 rounded flex items-center justify-center">
+                            ${isDone ? '<div class="w-2 h-2 bg-blue-400 rounded-sm"></div>' : ''}
+                        </div>
+                        <span class="${isDone ? 'line-through text-gray-500' : ''}">${todo.title}</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="editTodo(${todo.id}, '${todo.title}')" class="text-blue-400 hover:text-blue-300 text-xs font-bold">EDIT</button>
+                        <button onclick="deleteTodo(${todo.id})" class="text-red-500 hover:text-red-400 text-xs font-bold">DEL</button>
+                    </div>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        async function editTodo(id, oldTitle) {
+            const newTitle = prompt('Edit tugas:', oldTitle);
+            if (!newTitle || newTitle === oldTitle) return;
+
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${API_URL}/todos/${id}`, {
+                method: 'PATCH',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}` 
+                },
+                body: JSON.stringify({ title: newTitle })
+            });
+
+            if (res.ok) {
+                fetchTodos();
+            }
+        }
+
+        async function toggleTodo(id, currentStatus) {
+            const token = localStorage.getItem('token');
+            const newStatus = currentStatus === 1 ? 0 : 1;
+
+            const res = await fetch(`${API_URL}/todos/${id}`, {
+                method: 'PATCH',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}` 
+                },
+                body: JSON.stringify({ isDone: newStatus })
+            });
+
+            if (res.ok) {
+                fetchTodos();
+            }
+        }
+
+        async function deleteTodo(id) {
+            if (!confirm('Hapus tugas ini?')) return;
+
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${API_URL}/todos/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (res.ok) {
+                fetchTodos();
+            }
+        }
+
+        document.getElementById('todo-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const token = localStorage.getItem('token');
+            const title = document.getElementById('todo-title').value;
+
+            const res = await fetch(`${API_URL}/todos`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ title })
+            });
+
+            if (res.ok) {
+                document.getElementById('todo-title').value = '';
+                fetchTodos();
+            }
+        };
+
+        function logout() {
+            localStorage.removeItem('token');
+            location.reload();
+        }
+
+        // Check if already logged in on load
+        checkCurrentUser();
+    </script>
+</body>
+</html>

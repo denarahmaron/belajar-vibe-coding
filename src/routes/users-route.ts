@@ -29,4 +29,19 @@ export const usersRoute = new Elysia({ prefix: "/api" })
       email: t.String(),
       password: t.String()
     })
+  })
+  .get("/current", async ({ headers, set }) => {
+    try {
+      const authHeader = headers.authorization;
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        throw new Error("Unauthorized");
+      }
+
+      const token = authHeader.replace("Bearer ", "");
+      const user = await usersService.getCurrentUser(token);
+      return { data: user };
+    } catch (error: any) {
+      set.status = 401;
+      return { error: "Unauthorized" };
+    }
   });

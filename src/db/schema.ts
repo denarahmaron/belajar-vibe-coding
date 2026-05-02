@@ -15,3 +15,11 @@ export const sessions = mysqlTable("sessions", {
   userId: bigint("user_id", { mode: "number", unsigned: true }).notNull().references(() => users.id),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`),
 });
+
+export const todos = mysqlTable("todos", {
+  id: serial("id").primaryKey(),
+  title: varchar("title", { length: 255 }).notNull(),
+  isDone: bigint("is_done", { mode: "number" }).default(0),
+  userId: bigint("user_id", { mode: "number", unsigned: true }).notNull().references(() => users.id),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`),
+});
